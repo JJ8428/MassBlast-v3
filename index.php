@@ -613,7 +613,7 @@
                     if ($_SESSION['logged'] && $_SESSION['page'] == 4)
                     {
                         echo '<h3>Leave Feedback:</h3><hr>' . 
-                        'Please leave any comments regarding any improvements to PHTA or errors encountered while using MassBlast:<br><br>' .
+                        'Please leave any comments regarding any improvements to MassBlast or errors encountered while using MassBlast:<br><br>' .
                         '<textarea name="feedback" rows="5" cols="50" Required></textarea><br><br>' .
                         '<input type="submit" name="leaveFB" value="Submit">';
                     }
