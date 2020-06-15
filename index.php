@@ -48,26 +48,18 @@
     if (isset($_POST['page1']))
     {
         $_SESSION['page'] = 1;
-        $_SESSION['step1'] = 0;
-        $_SESSION['step2'] = 0;
     }
     if (isset($_POST['page2']))
     {
         $_SESSION['page'] = 2;
-        $_SESSION['step1'] = 0;
-        $_SESSION['step2'] = 0;
     }
     if (isset($_POST['page3']))
     {
         $_SESSION['page'] = 3;
-        $_SESSION['step1'] = 0;
-        $_SESSION['step2'] = 0;
     }
     if (isset($_POST['page4']))
     {
         $_SESSION['page'] = 4;
-        $_SESSION['step1'] = 0;
-        $_SESSION['step2'] = 0;
     }
 
     # Upload function
@@ -199,13 +191,7 @@
         $_SESSION['zipFile'] = '<a href="' . $_POST['zipfile'] . '" Download>Click here</a>' . ' to download data and plots of <b>' . explode('/', $_SESSION['zipOI'])[sizeof(explode('/', $_SESSION['zipOI'])) - 1] . '</b>';
         $_SESSION['step2'] = 1;
         echo shell_exec('env/bin/python src/Extract.py ' . $_SESSION['zipOI'] . ' ' . 'users/dirs/' . $_SESSION['whoami'] . '/view 2>&1');
-        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html', 'r');
-        $table = '';
-        while (!feof($read))
-        {
-            $table .= fgets($read);
-        }
-        $_SESSION['iframe']  = $table;
+        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html"></iframe>';
         $compared = [];
         $indices = '';
         $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/request.txt', 'r');
@@ -227,33 +213,21 @@
         }
         $_SESSION['indicesIB'] = $indices;
         $_SESSION['comparedWithIB'] = $compared;
+        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html"></iframe>';
         $_SESSION['toPrint'] = '';
     }
 
-    # iFrame's are swapped out with HTML due to iFrame unable to update in relation to fileIO
     # Provide iFrame of heatmap
     if (isset($_POST['hm-score']))
     {
-        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html', 'r');
-        $table = '';
-        while (!feof($read))
-        {
-            $table .= fgets($read);
-        }
-        $_SESSION['iframe']  = $table;
+        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html"></iframe>';
     }
     if (isset($_POST['hm-id']))
     {
-        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-id.html', 'r');
-        $table = '';
-        while (!feof($read))
-        {
-            $table .= fgets($read);
-        }
-        $_SESSION['iframe']  = $table;
+        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-id.html"></iframe>';
     }
 
-    # Indvidual Blast Results
+    # Invidual Blast Results
     if (isset($_POST['indvBlast']))
     {
         $_SESSION['warningIB'] = '';
@@ -277,19 +251,31 @@
                 }
             }
             fclose($read);
-            echo $index;
             $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/allMB.txt', 'r');
-            fgets($read);
+            $harvest = FALSE;
+            $IB = 0;
             $toPrint = '';
-            $allMB = '';
             while (!feof($read))
             {
-                $allMB .= fgets($read) . '<br>';
+                $line = trim(fgets($read));
+                if ($line == '===---===---===')
+                {
+                    $index -= 1;
+                    continue;
+                }
+                if (strpos($line, 'Query=') !== FALSE)
+                {
+                    $IB += 1;
+                }
+                if ($IB == $_POST['peptideIndex'])
+                {
+                    $toPrint = $toPrint . $line . '<br>';
+                }
+                if ($IB > $_POST['peptideIndex'])
+                {
+                    break;
+                }
             }
-            $allMB = explode('===---===---===', $allMB);
-            $allMB = $allMB[$index - 1];
-            $allMB = explode('Query=', $allMB);
-            $toPrint = $allMB[$_POST['peptideIndex']];
             $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' . $toPrint;
         }
     }
@@ -350,11 +336,6 @@
         .img
         {
             margin: 20px;
-        }
-        .iframe
-        {
-            overflow: hidden;
-            overflow-x: auto;
         }
     </style>
     <body>
@@ -540,8 +521,7 @@
                     # MassBlast waiting for request
                     if ($_SESSION['logged'] && $_SESSION['step1'] == 4 && $_SESSION['page'] == 2)
                     {
-                        echo 'MassBlast is processing your request. Please wait until your data appears in the results tab before submitting another request.<br><br>' . 
-                        'It will appear in the View Results tab as an option when completed.';
+                        echo 'MassBlast is processing your request. Please wait until your data appears in the results tab before submitting another request.<br>';
                     }
                 ?>
             </form>
@@ -562,6 +542,7 @@
                         '<input type="submit" name="deleteCommit" value="Submit">';
                     }
                 ?>
+            
             </form>
         </div>
         <div id="body">
@@ -592,7 +573,7 @@
                         'Select the unit for the heatmap to display: ' . 
                         '<input type="submit" name="hm-score" value="Score">' . 
                         '<input type="submit"" name="hm-id" value="ID"><br><br>';
-                        echo '<div class="iframe" style="border:1 solid black;">' . $_SESSION['iframe'] . '</div><br>' . 
+                        echo $_SESSION['iframe'] . '<br><br>' . 
                         $_SESSION['zipFile'];
                     }
                 ?>
@@ -632,7 +613,7 @@
                     if ($_SESSION['logged'] && $_SESSION['page'] == 4)
                     {
                         echo '<h3>Leave Feedback:</h3><hr>' . 
-                        'Please leave any comments regarding any improvements to MassBlast or errors encountered while using MassBlast:<br><br>' .
+                        'Please leave any comments regarding any improvements to PHTA or errors encountered while using MassBlast:<br><br>' .
                         '<textarea name="feedback" rows="5" cols="50" Required></textarea><br><br>' .
                         '<input type="submit" name="leaveFB" value="Submit">';
                     }
