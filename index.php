@@ -1,16 +1,6 @@
 <?php
     session_start();
 
-    # Session variables
-    $_SESSION['whoami']; // String
-    $_SESSION['logged']; // Boolean
-    $_SESSION['activedir']; // String
-    $_SESSION['step1']; // Integer
-    $_SESSION['step2']; // Integer
-    $_SESSION['step3']; // Integer
-    $_SESSION['page']; // Integer
-    $_SESSION['analysisSession']; // Boolean
-
     # Login function
     if (isset($_POST['login']))
     {
@@ -48,18 +38,26 @@
     if (isset($_POST['page1']))
     {
         $_SESSION['page'] = 1;
+        $_SESSION['step1'] = 0;
+        $_SESSION['step2'] = 0;
     }
     if (isset($_POST['page2']))
     {
         $_SESSION['page'] = 2;
+        $_SESSION['step1'] = 0;
+        $_SESSION['step2'] = 0;
     }
     if (isset($_POST['page3']))
     {
         $_SESSION['page'] = 3;
+        $_SESSION['step1'] = 0;
+        $_SESSION['step2'] = 0;
     }
     if (isset($_POST['page4']))
     {
         $_SESSION['page'] = 4;
+        $_SESSION['step1'] = 0;
+        $_SESSION['step2'] = 0;
     }
 
     # Upload function
@@ -109,8 +107,43 @@
                 }
             }
             $_SESSION['pepCount'] = $tmp;
-            $_SESSION['step1'] = 1;
             $_SESSION['calcMessage1'] = NULL;
+            if (sizeof($_SESSION['compareWith']) == 1)
+            {
+                $_SESSION['step1'] = 1;
+            }
+            else
+            {
+                $_SESSION['step1'] = .5;
+            }
+        }
+    }
+
+    # MassBlast Calculation Step 1.5
+    if (isset($_POST['arranged']))
+    {
+        $_SESSION['arrangeWarning'] = '';
+        $tmp = str_replace(' ', '', $_POST['arrangeCompareWith']);
+        $tmp = explode("\n", $tmp);
+        $count = 0;
+        for ($x = 0; $x < sizeof($tmp); $x++)
+        {
+            for ($y = 0; $y < sizeof($_SESSION['compareWith']); $y++)
+            {
+                if (rtrim($tmp[$x]) == rtrim($_SESSION['compareWith'][$y]))
+                {
+                    $count += 1;
+                }
+            }
+        }
+        if ($count == sizeof($_SESSION['compareWith']))
+        {
+            $_SESSION['compareWith'] = $tmp;
+            $_SESSION['step1'] = 1;
+        }
+        else
+        {
+            $_SESSION['arrangeWarning'] = '<b>The user entered the order incorrectly. Please enter them again.</b><br><br>';
         }
     }
 
@@ -191,7 +224,13 @@
         $_SESSION['zipFile'] = '<a href="' . $_POST['zipfile'] . '" Download>Click here</a>' . ' to download data and plots of <b>' . explode('/', $_SESSION['zipOI'])[sizeof(explode('/', $_SESSION['zipOI'])) - 1] . '</b>';
         $_SESSION['step2'] = 1;
         echo shell_exec('env/bin/python src/Extract.py ' . $_SESSION['zipOI'] . ' ' . 'users/dirs/' . $_SESSION['whoami'] . '/view 2>&1');
-        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html"></iframe>';
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html', 'r');
+        $table = '';
+        while (!feof($read))
+        {
+            $table .= fgets($read);
+        }
+        $_SESSION['iframe']  = $table;
         $compared = [];
         $indices = '';
         $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/request.txt', 'r');
@@ -213,21 +252,33 @@
         }
         $_SESSION['indicesIB'] = $indices;
         $_SESSION['comparedWithIB'] = $compared;
-        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html"></iframe>';
         $_SESSION['toPrint'] = '';
     }
 
+    # iFrame's are swapped out with HTML due to iFrame unable to update in relation to fileIO
     # Provide iFrame of heatmap
     if (isset($_POST['hm-score']))
     {
-        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html"></iframe>';
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html', 'r');
+        $table = '';
+        while (!feof($read))
+        {
+            $table .= fgets($read);
+        }
+        $_SESSION['iframe']  = $table;
     }
     if (isset($_POST['hm-id']))
     {
-        $_SESSION['iframe']  = '<iframe width="99%" src="users/dirs/' . $_SESSION['whoami'] . '/view/hm-id.html"></iframe>';
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-id.html', 'r');
+        $table = '';
+        while (!feof($read))
+        {
+            $table .= fgets($read);
+        }
+        $_SESSION['iframe']  = $table;
     }
 
-    # Invidual Blast Results
+    # Indvidual Blast Results
     if (isset($_POST['indvBlast']))
     {
         $_SESSION['warningIB'] = '';
@@ -251,31 +302,19 @@
                 }
             }
             fclose($read);
+            echo $index;
             $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/allMB.txt', 'r');
-            $harvest = FALSE;
-            $IB = 0;
+            fgets($read);
             $toPrint = '';
+            $allMB = '';
             while (!feof($read))
             {
-                $line = trim(fgets($read));
-                if ($line == '===---===---===')
-                {
-                    $index -= 1;
-                    continue;
-                }
-                if (strpos($line, 'Query=') !== FALSE)
-                {
-                    $IB += 1;
-                }
-                if ($IB == $_POST['peptideIndex'])
-                {
-                    $toPrint = $toPrint . $line . '<br>';
-                }
-                if ($IB > $_POST['peptideIndex'])
-                {
-                    break;
-                }
+                $allMB .= fgets($read) . '<br>';
             }
+            $allMB = explode('===---===---===', $allMB);
+            $allMB = $allMB[$index - 1];
+            $allMB = explode('Query=', $allMB);
+            $toPrint = $allMB[$_POST['peptideIndex']];
             $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' . $toPrint;
         }
     }
@@ -336,6 +375,11 @@
         .img
         {
             margin: 20px;
+        }
+        .iframe
+        {
+            overflow: hidden;
+            overflow-x: auto;
         }
     </style>
     <body>
@@ -470,6 +514,29 @@
             </form>
             <form action="" method="post" enctype="multipart/form-data">
                 <?php
+                    # MassBlast Calculation Step 1.5
+                    if ($_SESSION['logged'] && $_SESSION['step1'] == .5 && $_SESSION['page'] == 2)
+                    {
+                        echo $_SESSION['arrangeWarning'];
+                        echo 'Please arrange the fasta files to compare with in your desired order: (Line by line)<br><br>';
+                        $toEcho = '';
+                        for ($x = 0; $x < sizeof($_SESSION['compareWith']); $x++)
+                        {
+                            $toEcho .= $_SESSION['compareWith'][$x];
+                            if (($x + 1) < sizeof($_SESSION['compareWith']))
+                            {
+                                $toEcho .= ', ';
+                            }
+                        }
+                        echo '<b>' . $toEcho . '</b><br><br>' . 
+                        $_SESSION['a'] . $_SESSION['b'] . $_SESSION['c'] . 
+                        '<textarea name="arrangeCompareWith" rows="5" cols="50" Required></textarea><br><br>' . 
+                        '<input type="submit" name="arranged">';
+                    }
+                ?>
+            </form>
+            <form action="" method="post" enctype="multipart/form-data">
+                <?php
                     # MassBlast Calculation Step 2
                     if ($_SESSION['logged'] && $_SESSION['step1'] == 1 && $_SESSION['page'] == 2)
                     {
@@ -521,7 +588,8 @@
                     # MassBlast waiting for request
                     if ($_SESSION['logged'] && $_SESSION['step1'] == 4 && $_SESSION['page'] == 2)
                     {
-                        echo 'MassBlast is processing your request. Please wait until your data appears in the results tab before submitting another request.<br>';
+                        echo 'MassBlast is processing your request. Please wait until your data appears in the results tab before submitting another request.<br><br>' . 
+                        'It will appear in the View Results tab as an option when completed.';
                     }
                 ?>
             </form>
@@ -542,7 +610,6 @@
                         '<input type="submit" name="deleteCommit" value="Submit">';
                     }
                 ?>
-            
             </form>
         </div>
         <div id="body">
@@ -573,7 +640,7 @@
                         'Select the unit for the heatmap to display: ' . 
                         '<input type="submit" name="hm-score" value="Score">' . 
                         '<input type="submit"" name="hm-id" value="ID"><br><br>';
-                        echo $_SESSION['iframe'] . '<br><br>' . 
+                        echo '<div class="iframe" style="border:1 solid black;">' . $_SESSION['iframe'] . '</div><br>' . 
                         $_SESSION['zipFile'];
                     }
                 ?>
@@ -613,7 +680,7 @@
                     if ($_SESSION['logged'] && $_SESSION['page'] == 4)
                     {
                         echo '<h3>Leave Feedback:</h3><hr>' . 
-                        'Please leave any comments regarding any improvements to PHTA or errors encountered while using MassBlast:<br><br>' .
+                        'Please leave any comments regarding any improvements to MassBlast or errors encountered while using MassBlast:<br><br>' .
                         '<textarea name="feedback" rows="5" cols="50" Required></textarea><br><br>' .
                         '<input type="submit" name="leaveFB" value="Submit">';
                     }

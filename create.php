@@ -94,12 +94,12 @@
     <body>
         <div id="body">
             <h1 style="display:inline; font-weight:normal">
-                <b>PH</b>enotype <b>T</b>ranscriptomic <b>A</b>ssociation <b>Calculator</b>
+                <b>MassBlast</b>
             </h1>
             <img id="img2" src="img/nsf-logo.png" height="59px" width="59px" style="display: inline; float:right">
             <img src="img/usc.jpeg" height="59px" width="59px" style="display: inline; float:right">
             </br>
-            Work of Dr. Homayoun Valafar, Dr. Hippokratis Kiaris, Youwen Zhang, Naga Venkata Sai Jagjit (JJ) Satti
+            Work of Dr. Homayoun Valafar, Dr. Traci L. Testerman, JJ Satti
         </div>
         <div id="body">
             <form action="" method="post" enctype="multipart/form-data">

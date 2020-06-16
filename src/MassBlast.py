@@ -50,22 +50,11 @@ for line in r3.readlines():
 tmp2 = tmp2.split('>')
 peptides = tmp2[peptideIndices[0]-1:peptideIndices[1]+1]
 w = open('users/dirs/' + whoami + '/tmp/focus.faa', 'w')
-for a in range(0, peptides.__len__()):
+for a in range(1, peptides.__len__()):
     w.write('>' + peptides[a])
 w.close()
-for a in range(0, peptides.__len__()):
-    peptides[a] = '>' + peptides[a]
 
 # Generate the data
-
-'''
-def filterOut():
-    st[-1] = -1
-    it[-1] = -1
-    pt[-1] = -1
-    gt[-1] = -1
-'''
-
 s = []
 i = []
 p = []
@@ -116,14 +105,13 @@ for a in range(0, compareWith.__len__()):
             tmp2 = tmp[2].split(' ')[3].split('/')
             gap = float(tmp2[0])/float(tmp2[1])
             filterOut = False
-            if filterBy.lower().__contains__('score') and (score < filterIndices[0] or score > filterIndices[1]):
+            if filterBy == 'Score' and (score < filterIndices[0] or score > filterIndices[1]):
                 filterOut = True
-            if filterBy.lower().__contains__('id') and (id < filterIndices[0] or id < filterIndices[1]):
+            if filterBy == 'ID' and (id < filterIndices[0] or id > filterIndices[1]):
                 filterOut = True
-                print(str(id) + ' is not between ' + str(filterIndices[0]) + ',' + str(filterIndices[1]))
-            if filterBy.lower().__contains__('positive') and (positive < filterIndices[0] or positive > filterIndices[1]):
+            if filterBy == 'Positive' and (positive < filterIndices[0] or positive > filterIndices[1]):
                 filterOut = True
-            if filterBy.lower().__contains__('gap') and (gap <= filterIndices[0] or gap >= filterIndices[1]):
+            if filterBy == 'Gap' and (gap < filterIndices[0] or gap > filterIndices[1]):
                 filterOut = True
             if filterOut:
                 score = 0
@@ -195,10 +183,10 @@ try:
     font2 = ImageFont.truetype("font/arial.ttf", 15)
     for a in range(0, compareWith.__len__()):
         draw.text((0, 25*(a+1)), compareWith[a], fill=(255, 255, 255, 255), font=font)
-    for a in range(0, (peptideIndices[1] - peptideIndices[0] + 1), 2):
-        if a % 10 == 0:
+    for a in range(0, (peptideIndices[1] - peptideIndices[0] + 1)):
+        if (peptideIndices[0] + a) % 10 == 0:
             draw.text((250 + (25*a), 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font)
-        else:
+        elif (peptideIndices[0] + a) % 2 == 0:
             draw.text((250 + (25*a) + 4, 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font2)
     for a in range(0, s.__len__()):
         for b in range(0, s[0].__len__()):
@@ -223,10 +211,10 @@ try:
     font2 = ImageFont.truetype("font/arial.ttf", 15)
     for a in range(0, compareWith.__len__()):
         draw.text((0, 25*(a+1)), compareWith[a], fill=(255, 255, 255, 255), font=font)
-    for a in range(0, (peptideIndices[1] - peptideIndices[0] + 1), 2):
-        if a % 10 == 0:
+    for a in range(0, (peptideIndices[1] - peptideIndices[0] + 1)):
+        if (peptideIndices[0] + a) % 10 == 0:
             draw.text((250 + (25*a), 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font)
-        else:
+        elif (peptideIndices[0] + a) % 2 == 0:
             draw.text((250 + (25*a) + 4, 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font2)
     for a in range(0, i.__len__()):
         for b in range(0, i[0].__len__()):
@@ -246,7 +234,7 @@ try:
 
     # Generate heatmap HTML for Score
     w = open('users/dirs/' + whoami + '/results/hm-score.html', 'w')
-    w.write('<table>\n\t<tr>\n\t\t<td></td>')
+    w.write('<table>\n\t<tr>\n\t\t<td>Score</td>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
         w.write('\n\t\t<td>' + str(peptideIndices[0] + a) + '</td>')
     w.write('\n\t</tr>')
@@ -267,7 +255,7 @@ try:
 
     # Generate heatmap HTML for ID
     w = open('users/dirs/' + whoami + '/results/hm-id.html', 'w')
-    w.write('<table>\n\t<tr>\n\t\t<td></td>')
+    w.write('<table>\n\t<tr>\n\t\t<td>ID</td>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
         w.write('\n\t\t<td>' + str(peptideIndices[0] + a) + '</td>')
     w.write('\n\t</tr>')
@@ -280,7 +268,6 @@ try:
                 w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"></td>')
             else:
                 g = (i[a][b] / maxI) ** 2
-                g = math.log(g)
                 g = int(g * 255)
                 w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"></td>')
         w.write('\n\t</tr>')
@@ -299,7 +286,6 @@ r.close()
 w = open('users/dirs/' + whoami + '/results/request.txt', 'w')
 for a in range(0, request.__len__()):
     w.write(request[a])
-    print(request[a])
 w.close()
 
 # Zip the results directory
