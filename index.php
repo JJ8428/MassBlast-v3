@@ -278,7 +278,7 @@
         $_SESSION['iframe']  = $table;
     }
 
-    # Indvidual Blast Results
+    # Indvidual Blast Results via Menu
     if (isset($_POST['indvBlast']))
     {
         $_SESSION['warningIB'] = '';
@@ -301,23 +301,88 @@
                     break;
                 }
             }
+            $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/request.txt', 'r');
+            $offset = '';
+            while(!feof($read))
+            {
+                $line = fgets($read);
+                if (strpos($line, '||') !== false)
+                {
+                    $offset = $line;
+                    break;
+                }
+            }
+            $offset = explode('||', $offset);
             fclose($read);
-            echo $index;
+            $offset = $offset[0];
             $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/allMB.txt', 'r');
             fgets($read);
             $toPrint = '';
             $allMB = '';
             while (!feof($read))
             {
-                $allMB .= fgets($read) . '<br>';
+                $allMB .= '<pre>'. fgets($read) . '</pre>';
             }
             $allMB = explode('===---===---===', $allMB);
             $allMB = $allMB[$index - 1];
             $allMB = explode('Query=', $allMB);
-            $toPrint = $allMB[$_POST['peptideIndex']];
-            $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' . $toPrint;
+            $toPrint = $allMB[$_POST['peptideIndex'] - $offset + 1];
+            $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' . 
+            '<div style="font-family:\'Courier New\'">' . $toPrint . '</div>';
         }
     }
+
+    # Indvidual Blast Results via Menu
+    if (isset($_POST['IBC']))
+    {
+        $_SESSION['warningIB'] = '';
+        $tmp = explode('||', $_POST['IBC']);
+        $indexOI = (int)$tmp[0];
+        $compareWith = $tmp[1];
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/request.txt', 'r');
+        fgets($read);
+        fgets($read);
+        $index = 0;
+        while (!feof($read))
+        {
+            $line = fgets($read);
+            $index++;
+            if (trim($compareWith) == trim($line))
+            {
+                break;
+            }
+        }
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/request.txt', 'r');
+        $offset = '';
+        while(!feof($read))
+        {
+            $line = fgets($read);
+            if (strpos($line, '||') !== false)
+            {
+                $offset = $line;
+                break;
+            }
+        }
+        $offset = explode('||', $offset);
+        fclose($read);
+        $offset = $offset[0];
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/allMB.txt', 'r');
+        fgets($read);
+        $toPrint = '';
+        $allMB = '';
+        while (!feof($read))
+        {
+            $allMB .= '<pre>'. fgets($read) . '</pre>';
+        }
+        $allMB = explode('===---===---===', $allMB);
+        $allMB = $allMB[$index - 1];
+        $allMB = explode('Query=', $allMB);
+        $toPrint = $allMB[$indexOI - $offset + 1];
+        $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' . 
+        '<div style="font-family:\'Courier New\'">' . $toPrint . '</div>';
+    }
+
+
 
     # Leave Feedback
     if (isset($_POST['leaveFB']))
@@ -380,6 +445,13 @@
         {
             overflow: hidden;
             overflow-x: auto;
+        }
+        button {
+            background-color: Transparent;
+            border: None;
+            color: Transparent;
+            cursor:pointer;
+            overflow: hidden;
         }
     </style>
     <body>
@@ -589,7 +661,7 @@
                     if ($_SESSION['logged'] && $_SESSION['step1'] == 4 && $_SESSION['page'] == 2)
                     {
                         echo 'MassBlast is processing your request. Please wait until your data appears in the results tab before submitting another request.<br><br>' . 
-                        'It will appear in the View Results tab as an option when completed.';
+                        'It is complete when it appears in the View Results tab as an option upon reloading the page.';
                     }
                 ?>
             </form>
@@ -639,7 +711,8 @@
                         echo '<h3>Select Data:</h3><hr>' . 
                         'Select the unit for the heatmap to display: ' . 
                         '<input type="submit" name="hm-score" value="Score">' . 
-                        '<input type="submit"" name="hm-id" value="ID"><br><br>';
+                        '<input type="submit"" name="hm-id" value="ID"><br><br>' . 
+                        '<table id="TableOfContents"><tr><td id="colored" style="background-color:rgb(0,255,0)">__</td><td>Valid hit(s) detected</td><td id="colored" style="background-color:rgb(255,0,0)">__</td><td>No hits</td><td id="colored" style="background-color:rgb(0,0,255)">__</td><td>Hit(s) detected outside of given filter</td><tr></table><br>';
                         echo '<div class="iframe" style="border:1 solid black;">' . $_SESSION['iframe'] . '</div><br>' . 
                         $_SESSION['zipFile'];
                     }
@@ -652,7 +725,8 @@
                     {
                         echo '<h3>Individual Blast:</h3><hr>' . 
                         $_SESSION['warningIB'] . 
-                        'Please enter the following parameters to view BLAST results of individual peptide sequences.<br><br>' . 
+                        'To view individual Blast reports, click on the cell of interest <b>OR...</b><br><br>' . 
+                        'Enter the following parameters pertaining to your cell of interest:<br><br>' . 
                         'Peptide Index:<input type="number" min="' . $_SESSION['indicesIB'][0] . '" max="' . $_SESSION['indicesIB'][1] . '" step="1" name="peptideIndex"><br><br>' . 
                         'Compared With:' . 
                         '<select name="compareWith">';
