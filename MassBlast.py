@@ -130,38 +130,6 @@ for a in range(0, compareWith.__len__()):
     p.append(pt)
     g.append(gt)
 
-# Write the data
-wS = open('users/dirs/' + whoami + '/results/score.csv', 'w')
-wI = open('users/dirs/' + whoami + '/results/id.csv', 'w')
-wP = open('users/dirs/' + whoami + '/results/positives.csv', 'w')
-wG = open('users/dirs/' + whoami + '/results/gap.csv', 'w')
-
-
-def write(input):
-    wS.write(input)
-    wI.write(input)
-    wP.write(input)
-    wG.write(input)
-
-
-toWrite = ','
-for a in range(peptideIndices[0], peptideIndices[1] + 1):
-    toWrite += str(a) + ','
-toWrite += "\n"
-write(toWrite)
-for a in range(0, compareWith.__len__()):
-    write(compareWith[a] + ',')
-    for b in range(0, s[0].__len__()):
-        wS.write(str(s[a][b]) + ',')
-        wI.write(str(i[a][b]) + ',')
-        wP.write(str(p[a][b]) + ',')
-        wG.write(str(g[a][b]) + ',')
-    write("\n")
-wS.close()
-wI.close()
-wP.close()
-wG.close()
-
 # Write down all hits detected
 w = open('users/dirs/' + whoami + '/results/allPeptides.txt', 'w')
 rMB = open('users/dirs/' + whoami + '/results/allMB.txt', 'r')
@@ -179,7 +147,9 @@ for a in range(0, query.__len__()):
             toAdd += query[a + 1]
         toAdd += '\n'
         peptideOI.append(toAdd)
+allPeptides = []
 for a in range(0, peptideOI.__len__()):
+    tmp2 = []
     w.write(str(a + peptideIndices[0]) + '... ' + peptideOI[a])
     for b in range(0, allMB.__len__()):
         w.write('\t' + str(b + 1) + '.. ' + compareWith[b] + '\n')
@@ -193,21 +163,64 @@ for a in range(0, peptideOI.__len__()):
                 tmp.append(toAppend.replace('\n', ' '))
         if tmp.__len__() == 0:
             w.write('\t\t***** No hits found *****\n')
+            tmp2.append(0)
         else:
             for d in range(0, tmp.__len__()):
                 w.write('\t\t' + tmp[d] + '\n')
+            tmp2.append(tmp.__len__())
+    allPeptides.append(tmp2)# Write the data
+wS = open('users/dirs/' + whoami + '/results/score.csv', 'w')
+wI = open('users/dirs/' + whoami + '/results/id.csv', 'w')
+wP = open('users/dirs/' + whoami + '/results/positives.csv', 'w')
+wG = open('users/dirs/' + whoami + '/results/gap.csv', 'w')
+wF = open('users/dirs/' + whoami + '/results/frequency.csv', 'w')
+
+
+def write(input):
+    wS.write(input)
+    wI.write(input)
+    wP.write(input)
+    wG.write(input)
+    wF.write(input)
+
+
+toWrite = ','
+for a in range(peptideIndices[0], peptideIndices[1] + 1):
+    toWrite += str(a) + ','
+toWrite += "\n"
+write(toWrite)
+for a in range(0, compareWith.__len__()):
+    write(compareWith[a] + ',')
+    for b in range(0, s[0].__len__()):
+        wS.write(str(s[a][b]) + ',')
+        wI.write(str(i[a][b]) + ',')
+        wP.write(str(p[a][b]) + ',')
+        wG.write(str(g[a][b]) + ',')
+        wF.write(str(allPeptides[b][a]) + ',')
+    write("\n")
+wS.close()
+wI.close()
+wP.close()
+wG.close()
+wF.close()
 
 # Find the max to create allow RGB to be scaled
 maxS = -2
 maxI = -2
+maxF = -2
 for a in range(0, s.__len__()):
     for b in range(0, s[0].__len__()):
         if maxS < s[a][b]:
             maxS = s[a][b]
         if maxI < i[a][b]:
             maxI = i[a][b]
-
+        if maxF < allPeptides[b][a]:
+            maxF = allPeptides[b][a]
 try:
+    for a in range(0, peptideOI.__len__()):
+        peptideOI[a] = peptideOI[a].replace('\n', '')
+
+    '''
     # Generate heatmap PNG for Score
     im = Image.new('RGB', (250 + (25*(peptideIndices[1] - peptideIndices[0] + 2)),2 + 25*(1 + compareWith.__len__())), (80, 80, 80))
     draw = ImageDraw.Draw(im)
@@ -263,26 +276,25 @@ try:
                 g = int(g * 255)
                 draw.rectangle((left, top, right, bottom), fill=(0, g, 0), outline=(0, g, 0))
     im.save('users/dirs/' + whoami + '/results/hm-id.png', quality=500)
+    '''
 
     # Generate heatmap HTML for Score
-    for b in range(0, peptideOI.__len__()):
-        peptideOI[b] = peptideOI[b].replace('\n', '')
     w = open('users/dirs/' + whoami + '/results/hm-score.html', 'w')
     w.write('<table>\n\t<tr>\n\t\t<td>Score</td>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
-        w.write('\n\t\t<td>' + str(peptideIndices[0] + a) + '</td>')
+        w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
     w.write('\n\t</tr>')
     for a in range(0, compareWith.__len__()):
         w.write('\n\t<tr>\n\t\t<td>' + compareWith[a] + '</td>')
         for b in range(0, s[0].__len__()):
             if s[a][b] == -1:
-                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
             elif s[a][b] == 0:
-                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', (Hit Detected, but Filtered), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', (Hit Detected, but Filtered), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
             else:
-                g = (s[a][b] / maxS) ** 2
+                g = (s[a][b] / maxS)
                 g = int(g * 255)
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Score: ' + str(s[a][b]) + ' (bits), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Score: ' + str(s[a][b]) + ' (bits), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">' + str(s[a][b]) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()
@@ -291,24 +303,44 @@ try:
     w = open('users/dirs/' + whoami + '/results/hm-id.html', 'w')
     w.write('<table>\n\t<tr>\n\t\t<td>ID</td>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
-        w.write('\n\t\t<td>' + str(peptideIndices[0] + a) + '</td>')
+        w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
     w.write('\n\t</tr>')
     for a in range(0, compareWith.__len__()):
         w.write('\n\t<tr>\n\t\t<td>' + compareWith[a] + '</td>')
         for b in range(0, i[0].__len__()):
             if i[a][b] == -1:
-                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
             elif i[a][b] == 0:
-                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
             else:
                 g = (i[a][b] / maxI) ** 2
                 g = int(g * 255)
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">' + str(i[a][b]) + '</button></td>')
+        w.write('\n\t</tr>')
+    w.write('\n</table>')
+    w.write('\n\t</tr>')
+    w.write('\n</table>')
+    w.close()
+
+    # Generate heatmap HTML fo hit frequency
+    w = open('users/dirs/' + whoami + '/results/hm-frequency.html', 'w')
+    w.write('<table>\n\t<tr>\n\t\t<td>Frequency</td>')
+    for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
+        w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
+    w.write('\n\t</tr>')
+    for a in range(0, compareWith.__len__()):
+        w.write('\n\t<tr>\n\t\t<td>' + compareWith[a] + '</td>')
+        for b in range(0, allPeptides.__len__()):
+            if allPeptides[b][a] == 0:
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+            else:
+                g = (allPeptides[b][a] / maxF) ** 2
+                g = int(g * 255)
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Frequency: ' + str(allPeptides[b][a]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">' + str(allPeptides[b][a]) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()
 except Exception as e:
-    print('The limits entered are not advisable. Aborting the MassBlast procedure. Error Parameters: FilterIndices = [' + str(filterIndices[0]) + ', ' + str(filterIndices[1]) + '] maxS ' +  str(maxS) + ' maxI ' + str(maxI))
     print(e)
     exit(1)
 

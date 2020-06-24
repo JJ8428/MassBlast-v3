@@ -277,6 +277,17 @@
         }
         $_SESSION['iframe']  = $table;
     }
+    if (isset($_POST['hm-frequency']))
+    {
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-frequency.html', 'r');
+        $table = '';
+        while (!feof($read))
+        {
+            $table .= fgets($read);
+        }
+        $_SESSION['iframe']  = $table;
+    }
+    
 
     # Indvidual Blast Results via Menu
     if (isset($_POST['indvBlast']))
@@ -447,11 +458,24 @@
             overflow-x: auto;
         }
         button {
+            width: 35px;
             background-color: Transparent;
             border: None;
-            color: Transparent;
+            color: White;
             cursor:pointer;
             overflow: hidden;
+        }
+        .colored
+        {
+            color: Transparent;
+        }
+        th
+        {
+            transform: rotate(-90deg);
+        }
+        .rb
+        {
+            color: Transparent
         }
     </style>
     <body>
@@ -711,8 +735,9 @@
                         echo '<h3>Select Data:</h3><hr>' . 
                         'Select the unit for the heatmap to display: ' . 
                         '<input type="submit" name="hm-score" value="Score">' . 
-                        '<input type="submit"" name="hm-id" value="ID"><br><br>' . 
-                        '<table id="TableOfContents"><tr><td id="colored" style="background-color:rgb(0,255,0)">__</td><td>Valid hit(s) detected</td><td id="colored" style="background-color:rgb(255,0,0)">__</td><td>No hits</td><td id="colored" style="background-color:rgb(0,0,255)">__</td><td>Hit(s) detected outside of given filter</td><tr></table><br>';
+                        '<input type="submit"" name="hm-id" value="ID">' . 
+                        '<input type="submit"" name="hm-frequency" value="Frequency"><br><br>' . 
+                        '<table id="TableOfContents"><tr><td class="colored" style="background-color:rgb(0,255,0)">__</td><td>Valid hit(s) detected</td><td class="colored" style="background-color:rgb(255,0,0)">__</td><td>No hits</td><td class="colored" style="background-color:rgb(0,0,255)">__</td><td>Hit(s) detected outside of given filter</td><tr></table><br>';
                         echo '<div class="iframe" style="border:1 solid black;">' . $_SESSION['iframe'] . '</div><br>' . 
                         $_SESSION['zipFile'];
                     }
