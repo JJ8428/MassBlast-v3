@@ -458,7 +458,7 @@
             overflow-x: auto;
         }
         button {
-            width: 35px;
+            width: 50px;
             background-color: Transparent;
             border: None;
             color: White;
@@ -468,10 +468,6 @@
         .colored
         {
             color: Transparent;
-        }
-        th
-        {
-            transform: rotate(-90deg);
         }
         .rb
         {
@@ -526,6 +522,8 @@
                     if ($_SESSION['logged'] && $_SESSION['page'] == 1)
                     {
                         echo '<h3>Upload:</h3><hr>' .
+                        'Proteome FASTA files (.faa extension) must be uploaded prior to calculations.<br><br>' . 
+                        'If you don\'t have any, feel free to use the following FASTA files in this <a href="pfasta.zip" download>zip file.</a><br><br>' . 
                         '<input type="file" name="fileToUpload"><br><br>' .
                         '<input type="submit" name="upload" value="Upload">';
                     }
@@ -597,8 +595,8 @@
                             echo '<option value="' . $file[$x] . '">' . $file[$x] . '</option>';
                         }
                         echo '</select><br><br>' . 
-                        'Please select the fasta file to compare the file of focus with:<br><br>' . 
-                        '<div style="overflow:scroll; width:15%; height:100px; background-color:#cfcfcf">';
+                        'Please select the fasta file(s) to compare the file of focus with:<br><br>' . 
+                        '<div style="overflow:scroll; width:30%; height:100px; background-color:#cfcfcf">';
                         for ($x = 2; $x < sizeof($file); $x++)
                         {
                             echo '<input type="checkbox" name="compareWith[]" value="' . $file[$x] . '">' . $file[$x] . '<br>';

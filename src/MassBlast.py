@@ -62,7 +62,7 @@ g = []
 clear = open('users/dirs/' + whoami + '/results/allMB.txt', 'w')
 clear.close()
 for a in range(0, compareWith.__len__()):
-    cmd = 'blastp -query users/dirs/' + whoami + '/tmp/focus.faa -subject ' + 'users/dirs/' + whoami + '/files/' +compareWith[a] + ' -evalue .001 -out users/dirs/' + whoami + '/tmp/mB.txt'
+    cmd = 'blastp -query users/dirs/' + whoami + '/tmp/focus.faa -subject ' + 'users/dirs/' + whoami + '/files/' +compareWith[a] + ' -evalue .001 -out users/dirs/' + whoami + '/tmp/mB.txt -max_target_seqs 1 -max_hsps 1'
     os.system(cmd)
     r3 = open('users/dirs/' + whoami + '/tmp/mB.txt', 'r')
     st = []
