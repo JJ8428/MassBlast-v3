@@ -123,27 +123,40 @@
     if (isset($_POST['arranged']))
     {
         $_SESSION['arrangeWarning'] = '';
-        $tmp = str_replace(' ', '', $_POST['arrangeCompareWith']);
-        $tmp = explode("\n", $tmp);
-        $count = 0;
-        for ($x = 0; $x < sizeof($tmp); $x++)
+        $error = false;
+        if (count($_POST['order']) !== count(array_unique($_POST['order'])))
         {
-            for ($y = 0; $y < sizeof($_SESSION['compareWith']); $y++)
+            $error = true;
+        }
+        else
+        {
+            for ($x = 0; $x < sizeof($_POST['order']); $x++)
             {
-                if (rtrim($tmp[$x]) == rtrim($_SESSION['compareWith'][$y]))
+                if ($_POST['order'][$x] > sizeof($_SESSION['compareWith']) || $_POST['order'][$x] < 1)
                 {
-                    $count += 1;
+                    $error = true;
+                    break;
                 }
             }
         }
-        if ($count == sizeof($_SESSION['compareWith']))
+        if (!$error)
         {
+            $tmp = [];
+            for ($x = 0; $x < sizeof($_POST['order']); $x++)
+            {
+                array_push($tmp, ' ');
+            }
+            $expected = 1;
+            for ($x = 0; $x < sizeof($_POST['order']); $x++)
+            {
+                $tmp[$_POST['order'][$x] - 1] = $_SESSION['compareWith'][$x];
+            }
             $_SESSION['compareWith'] = $tmp;
             $_SESSION['step1'] = 1;
         }
         else
         {
-            $_SESSION['arrangeWarning'] = '<b>The user entered the order incorrectly. Please enter them again.</b><br><br>';
+            $_SESSION['arrangeWarning'] = '<b>The user entered the order incorrectly. Please enter the inputs again.</b><br><br>';
         }
     }
 
@@ -393,8 +406,6 @@
         '<div style="font-family:\'Courier New\'">' . $toPrint . '</div>';
     }
 
-
-
     # Leave Feedback
     if (isset($_POST['leaveFB']))
     {
@@ -612,19 +623,12 @@
                     if ($_SESSION['logged'] && $_SESSION['step1'] == .5 && $_SESSION['page'] == 2)
                     {
                         echo $_SESSION['arrangeWarning'];
-                        echo 'Please arrange the fasta files to compare with in your desired order: (Line by line)<br><br>';
-                        $toEcho = '';
+                        echo 'Please arrange the fasta files to compare with by enterring the number <b>(between 1 - ' . sizeof($_SESSION['compareWith']) . ' inclusively)</b> associated with its order:<br><br>';
                         for ($x = 0; $x < sizeof($_SESSION['compareWith']); $x++)
                         {
-                            $toEcho .= $_SESSION['compareWith'][$x];
-                            if (($x + 1) < sizeof($_SESSION['compareWith']))
-                            {
-                                $toEcho .= ', ';
-                            }
+                            echo '<input min="1" max="' . sizeof($_SESSION['compareWith']) .  '" type="number" name="order[]">' . $_SESSION['compareWith'][$x] . '<br>';
                         }
-                        echo '<b>' . $toEcho . '</b><br><br>' . 
-                        $_SESSION['a'] . $_SESSION['b'] . $_SESSION['c'] . 
-                        '<textarea name="arrangeCompareWith" rows="5" cols="50" Required></textarea><br><br>' . 
+                        echo '<br>' . 
                         '<input type="submit" name="arranged">';
                     }
                 ?>
