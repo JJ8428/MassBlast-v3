@@ -220,7 +220,6 @@ try:
     for a in range(0, peptideOI.__len__()):
         peptideOI[a] = peptideOI[a].replace('\n', '')
 
-    '''
     # Generate heatmap PNG for Score
     im = Image.new('RGB', (250 + (25*(peptideIndices[1] - peptideIndices[0] + 2)),2 + 25*(1 + compareWith.__len__())), (80, 80, 80))
     draw = ImageDraw.Draw(im)
@@ -276,46 +275,51 @@ try:
                 g = int(g * 255)
                 draw.rectangle((left, top, right, bottom), fill=(0, g, 0), outline=(0, g, 0))
     im.save('users/dirs/' + whoami + '/results/hm-id.png', quality=500)
-    '''
 
     # Generate heatmap HTML for Score
     w = open('users/dirs/' + whoami + '/results/hm-score.html', 'w')
-    w.write('<table>\n\t<tr>\n\t\t<td>Score</td>')
+    w.write('<table>\n\t<tr>\n\t\t<th class="headcol">Score</th>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
         w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
     w.write('\n\t</tr>')
     for a in range(0, compareWith.__len__()):
-        w.write('\n\t<tr>\n\t\t<td>' + compareWith[a] + '</td>')
+        w.write('\n\t<tr>\n\t\t<th class="headcol">' + compareWith[a] + '</th>')
         for b in range(0, s[0].__len__()):
             if s[a][b] == -1:
-                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                comment = "Peptide: " +  peptideOI[b] + ", (No Hit Detected), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             elif s[a][b] == 0:
-                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', (Hit Detected, but Filtered), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                comment = "Peptide: " +  peptideOI[b] + ", (Hit Detected, but Filtered), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', (Hit Detected, but Filtered), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             else:
                 g = (s[a][b] / maxS)
                 g = int(g * 255)
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Score: ' + str(s[a][b]) + ' (bits), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">' + str(s[a][b]) + '</button></td>')
+                comment = "Peptide: " + peptideOI[b] + ", Score: " + str(s[a][b]) +  "(bits), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Score: ' + str(s[a][b]) + ' (bits), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(s[a][b]) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()
 
     # Generate heatmap HTML for ID
     w = open('users/dirs/' + whoami + '/results/hm-id.html', 'w')
-    w.write('<table>\n\t<tr>\n\t\t<td>ID</td>')
+    w.write('<table>\n\t<tr>\n\t\t<th class="headcol">ID</th>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
         w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
     w.write('\n\t</tr>')
     for a in range(0, compareWith.__len__()):
-        w.write('\n\t<tr>\n\t\t<td>' + compareWith[a] + '</td>')
+        w.write('\n\t<tr>\n\t\t<th class="headcol">' + compareWith[a] + '</th>')
         for b in range(0, i[0].__len__()):
             if i[a][b] == -1:
-                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                comment = "Peptide: " +  peptideOI[b] + ", (No Hit Detected), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             elif i[a][b] == 0:
-                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                comment = "Peptide: " +  peptideOI[b] + ", (Hit Detected, but Filtered), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             else:
                 g = (i[a][b] / maxI) ** 2
                 g = int(g * 255)
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">' + str(i[a][b]) + '</button></td>')
+                comment = "Peptide: " + peptideOI[b] + ", ID: " + str(i[a][b]) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(i[a][b]) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.write('\n\t</tr>')
@@ -324,19 +328,21 @@ try:
 
     # Generate heatmap HTML fo hit frequency
     w = open('users/dirs/' + whoami + '/results/hm-frequency.html', 'w')
-    w.write('<table>\n\t<tr>\n\t\t<td>Frequency</td>')
+    w.write('<table>\n\t<tr>\n\t\t<th class="headcol">Frequency</th>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
         w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
     w.write('\n\t</tr>')
     for a in range(0, compareWith.__len__()):
-        w.write('\n\t<tr>\n\t\t<td>' + compareWith[a] + '</td>')
+        w.write('\n\t<tr>\n\t\t<th class="headcol">' + compareWith[a] + '</th>')
         for b in range(0, allPeptides.__len__()):
             if allPeptides[b][a] == 0:
-                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">_</button></td>')
+                comment = "Peptide: " +  peptideOI[b] + ", (No Hit Detected), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             else:
                 g = (allPeptides[b][a] / maxF) ** 2
                 g = int(g * 255)
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Frequency: ' + str(allPeptides[b][a]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '">' + str(allPeptides[b][a]) + '</button></td>')
+                comment = "Peptide: " + peptideOI[b] + ", Frequency: " + str(allPeptides[b][a]) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Frequency: ' + str(allPeptides[b][a]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(allPeptides[b][a]) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()

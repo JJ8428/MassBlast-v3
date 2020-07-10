@@ -363,6 +363,7 @@
         $tmp = explode('||', $_POST['IBC']);
         $indexOI = (int)$tmp[0];
         $compareWith = $tmp[1];
+        $clipboard = $tmp[2];
         $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/request.txt', 'r');
         fgets($read);
         fgets($read);
@@ -402,7 +403,8 @@
         $allMB = $allMB[$index - 1];
         $allMB = explode('Query=', $allMB);
         $toPrint = $allMB[$indexOI - $offset + 1];
-        $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' . 
+        $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' .
+        '<b>Notation: ' . $clipboard . '</b><br><br>' .   
         '<div style="font-family:\'Courier New\'">' . $toPrint . '</div>';
     }
 
@@ -484,6 +486,42 @@
         {
             color: Transparent
         }
+        .headcol
+        {
+            position: absolute;
+            width: 15em;
+            left: 0;
+            top: auto;
+            background-color: white;
+            border-top-width: 1px;
+            margin-top: -1px;
+            border-left: 8px solid black;
+        }
+        table 
+        {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        td, th
+        {
+            margin: 0;
+            white-space: nowrap;
+            border-top-width: 0px;
+        }
+        div table
+        {
+            overflow-y: visible;
+            padding: 0;
+            margin-left: 15em;
+        }
+        .inv
+        {
+            margin-left: 0;
+        }
+        .TableOfContents
+        {
+            margin-left: 0;
+        }
     </style>
     <body>
         <div id="body">
@@ -564,7 +602,7 @@
                     if ($_SESSION['logged'] && $_SESSION['page'] == 1)
                     {
                         echo '<h3>Inventory:</h3><hr>' . 
-                        '<table border="1">' . 
+                        '<table class="inv" border="1">' . 
                         '<tr><th>File:</th><th>Date Uploaded:</th><tr>';
                         $files = scandir('users/dirs/' . $_SESSION['whoami'] . '/files');
                         for ($x = 2; $x < sizeof($files); $x++)
@@ -739,7 +777,7 @@
                         '<input type="submit" name="hm-score" value="Score">' . 
                         '<input type="submit"" name="hm-id" value="ID">' . 
                         '<input type="submit"" name="hm-frequency" value="Frequency"><br><br>' . 
-                        '<table id="TableOfContents"><tr><td class="colored" style="background-color:rgb(0,255,0)">__</td><td>Valid hit(s) detected</td><td class="colored" style="background-color:rgb(255,0,0)">__</td><td>No hits</td><td class="colored" style="background-color:rgb(0,0,255)">__</td><td>Hit(s) detected outside of given filter</td><tr></table><br>';
+                        '<table class="TableOfContents"><tr><td class="colored" style="background-color:rgb(0,255,0)">__</td><td>Valid hit(s) detected</td><td class="colored" style="background-color:rgb(255,0,0)">__</td><td>No hits</td><td class="colored" style="background-color:rgb(0,0,255)">__</td><td>Hit(s) detected outside of given filter</td><tr></table><br>';
                         echo '<div class="iframe" style="border:1 solid black;">' . $_SESSION['iframe'] . '</div><br>' . 
                         $_SESSION['zipFile'];
                     }
