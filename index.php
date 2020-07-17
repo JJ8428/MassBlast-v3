@@ -899,8 +899,7 @@
                             <li>hm-id.html: a html file that is a copy of the ID heatmap</li>
                             <li>hm-frequency.html: a html file that is a copy of the Frequency heatmap displayed</li>
                             <li>request.txt: a file that holds the parameters the user submitted for this MassBlast query</li>
-                        </ul>' . 
-                        '';
+                        </ul>';
                     }
                 ?>
             </form>
