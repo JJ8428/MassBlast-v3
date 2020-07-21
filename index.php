@@ -398,9 +398,34 @@
         fclose($read);
         $offset = $offset[0];
         $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/allMB.txt', 'r');
-        fgets($read);
+        // fgets($read);
         $toPrint = '';
         $allMB = '';
+        $tmpCount = 0;
+        while (!feof($read))
+        {
+            $line = fgets($read);
+            if ($line == "===---===---===\n")
+            {
+                $tmpCount += 1;
+                continue;
+            }
+            if ($tmpCount == $index)
+            {
+                $allMB .= '<pre>'. $line . '</pre>';
+            }
+            else if ($tmpCount >= $index)
+            {
+                break;
+            }
+        }
+        fclose($read);
+        $allMB = explode('Query=', $allMB);
+        $toPrint = $allMB[$indexOI - $offset + 1];
+        $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' .
+        '<b>Notation: ' . $clipboard . '</b><br><br>' .   
+        '<div style="font-family:\'Courier New\'">' . $toPrint . '</div>';
+        /*
         while (!feof($read))
         {
             $allMB .= '<pre>'. fgets($read) . '</pre>';
@@ -412,6 +437,7 @@
         $_SESSION['toPrint'] = '<h3>Individual Blast Report:</h3><hr>' .
         '<b>Notation: ' . $clipboard . '</b><br><br>' .   
         '<div style="font-family:\'Courier New\'">' . $toPrint . '</div>';
+        */
     }
 
     # Leave Feedback
