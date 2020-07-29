@@ -1,8 +1,11 @@
+
 from zipfile import ZipFile
 import os
 import math
 from PIL import Image, ImageDraw, ImageFont
 import shutil
+import pandas as pd
+import sys
 
 # Harvest parameters
 r = open('activeDir', 'r')
@@ -130,8 +133,8 @@ for a in range(0, compareWith.__len__()):
     p.append(pt)
     g.append(gt)
 
-# Write down all hits detected
-w = open('users/dirs/' + whoami + '/results/allPeptides.txt', 'w')
+# Record all hits detected
+# w = open('users/dirs/' + whoami + '/results/allPeptides.txt', 'w')
 rMB = open('users/dirs/' + whoami + '/results/allMB.txt', 'r')
 rMB.readline()
 allMB = ''
@@ -150,9 +153,9 @@ for a in range(0, query.__len__()):
 allPeptides = []
 for a in range(0, peptideOI.__len__()):
     tmp2 = []
-    w.write(str(a + peptideIndices[0]) + '... ' + peptideOI[a])
+    # w.write(str(a + peptideIndices[0]) + '... ' + peptideOI[a])
     for b in range(0, allMB.__len__()):
-        w.write('\t' + str(b + 1) + '.. ' + compareWith[b] + '\n')
+        # w.write('\t' + str(b + 1) + '.. ' + compareWith[b] + '\n')
         lines = allMB[b].split('Query=')[a + 1].split('\n')
         tmp = []
         for c in range(1, lines.__len__()):
@@ -162,18 +165,22 @@ for a in range(0, peptideOI.__len__()):
                     toAppend += lines[c + 1]
                 tmp.append(toAppend.replace('\n', ' '))
         if tmp.__len__() == 0:
-            w.write('\t\t***** No hits found *****\n')
-            tmp2.append(0)
+            # w.write('\t\t***** No hits found *****\n')
+            tmp2.append(['***** No hits found *****'])
         else:
-            for d in range(0, tmp.__len__()):
-                w.write('\t\t' + tmp[d] + '\n')
-            tmp2.append(tmp.__len__())
-    allPeptides.append(tmp2)# Write the data
+            # for d in range(0, tmp.__len__()):
+                # w.write('\t\t' + tmp[d] + '\n')
+            tmp2.append(tmp)
+    allPeptides.append(tmp2)
+    
+# Write the data
 wS = open('users/dirs/' + whoami + '/results/score.csv', 'w')
 wI = open('users/dirs/' + whoami + '/results/id.csv', 'w')
-wP = open('users/dirs/' + whoami + '/results/positives.csv', 'w')
+wP = open('users/dirs/' + whoami + '/results/positive.csv', 'w')
 wG = open('users/dirs/' + whoami + '/results/gap.csv', 'w')
 wF = open('users/dirs/' + whoami + '/results/frequency.csv', 'w')
+wA = open('users/dirs/' + whoami + '/results/peptide.csv', 'w')
+wB = open('users/dirs/' + whoami + '/results/link.csv', 'w')
 
 
 def write(input):
@@ -182,12 +189,14 @@ def write(input):
     wP.write(input)
     wG.write(input)
     wF.write(input)
+    wA.write(input)
+    wB.write(input)
 
 
-toWrite = ','
+toWrite = '-,'
 for a in range(peptideIndices[0], peptideIndices[1] + 1):
     toWrite += str(a) + ','
-toWrite += "\n"
+toWrite += "--\n"
 write(toWrite)
 for a in range(0, compareWith.__len__()):
     write(compareWith[a] + ',')
@@ -196,17 +205,40 @@ for a in range(0, compareWith.__len__()):
         wI.write(str(i[a][b]) + ',')
         wP.write(str(p[a][b]) + ',')
         wG.write(str(g[a][b]) + ',')
-        wF.write(str(allPeptides[b][a]) + ',')
+        if allPeptides[b][a] == ['***** No hits found *****']:
+            wF.write('0,')
+            wA.write('0,')
+            wB.write('0,')
+        else:
+            wF.write(str(allPeptides[b][a].__len__()) + ',')
+            toWriteA = ''
+            toWriteB = ''
+            for c in range(0, allPeptides[b][a].__len__()):
+                toWriteA += allPeptides[b][a][c]
+                toWriteB += '> https://www.ncbi.nlm.nih.gov/protein/' + allPeptides[b][a][c].split(' ')[1]
+                if c != allPeptides[b][a].__len__() - 1:
+                    toWriteA += ' '
+                    toWriteB += ' '
+            if toWriteA.__contains__(','):
+                toWriteA = toWriteA.replace(',', '')
+            if toWriteB.__contains__(','):
+                toWriteB = toWriteB.replace(',', '')
+            wA.write(toWriteA + ',')
+            wB.write(toWriteB + ',')
     write("\n")
 wS.close()
 wI.close()
 wP.close()
 wG.close()
 wF.close()
+wA.close()
+wB.close()
 
 # Find the max to create allow RGB to be scaled
 maxS = -2
 maxI = -2
+maxP = -2
+maxG = -2
 maxF = -2
 for a in range(0, s.__len__()):
     for b in range(0, s[0].__len__()):
@@ -214,8 +246,12 @@ for a in range(0, s.__len__()):
             maxS = s[a][b]
         if maxI < i[a][b]:
             maxI = i[a][b]
-        if maxF < allPeptides[b][a]:
-            maxF = allPeptides[b][a]
+        if maxP < p[a][b]:
+            maxP = p[a][b]
+        if maxG < g[a][b]:
+            maxG = g[a][b]
+        if maxF < allPeptides[b][a].__len__():
+            maxF = allPeptides[b][a].__len__()
 try:
     for a in range(0, peptideOI.__len__()):
         peptideOI[a] = peptideOI[a].replace('\n', '')
@@ -243,9 +279,9 @@ try:
             elif s[a][b] == 0:
                 draw.rectangle((left, top, right, bottom), fill=(0, 0, 255), outline=(0, 0, 255))
             else:
-                g = (s[a][b] / maxS) ** 2
-                g = int(g * 255)
-                draw.rectangle((left, top, right, bottom), fill=(0, g, 0), outline=(0, g, 0))
+                gr = (s[a][b] / maxS) ** 2
+                gr = int(gr * 255)
+                draw.rectangle((left, top, right, bottom), fill=(0, gr, 0), outline=(0, gr, 0))
     im.save('users/dirs/' + whoami + '/results/hm-score.png', quality=500)
 
     # Generate heatmap PNG for ID
@@ -271,10 +307,66 @@ try:
             elif i[a][b] == 0:
                 draw.rectangle((left, top, right, bottom), fill=(0, 0, 255), outline=(0, 0, 255))
             else:
-                g = (i[a][b] / maxI) ** 2
-                g = int(g * 255)
-                draw.rectangle((left, top, right, bottom), fill=(0, g, 0), outline=(0, g, 0))
+                gr = (i[a][b] / maxI) ** 2
+                gr = int(gr * 255)
+                draw.rectangle((left, top, right, bottom), fill=(0, gr, 0), outline=(0, gr, 0))
     im.save('users/dirs/' + whoami + '/results/hm-id.png', quality=500)
+
+    # Generate heatmap PNG for Positives
+    im = Image.new('RGB', (250 + (25*(peptideIndices[1] - peptideIndices[0] + 2)),2 + 25*(1 + compareWith.__len__())), (80, 80, 80))
+    draw = ImageDraw.Draw(im)
+    font = ImageFont.truetype("font/arial.ttf", 25)
+    font2 = ImageFont.truetype("font/arial.ttf", 15)
+    for a in range(0, compareWith.__len__()):
+        draw.text((0, 25*(a+1)), compareWith[a], fill=(255, 255, 255, 255), font=font)
+    for a in range(0, (peptideIndices[1] - peptideIndices[0] + 1)):
+        if (peptideIndices[0] + a) % 10 == 0:
+            draw.text((250 + (25*a), 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font)
+        elif (peptideIndices[0] + a) % 2 == 0:
+            draw.text((250 + (25*a) + 4, 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font2)
+    for a in range(0, i.__len__()):
+        for b in range(0, i[0].__len__()):
+            left = 250 + 25*b
+            right = left + 25
+            top = 25*(a+1)
+            bottom = top + 25
+            if p[a][b] == -1:
+                draw.rectangle((left, top, right, bottom), fill=(255, 0, 0), outline=(255, 0, 0))
+            elif p[a][b] == 0:
+                draw.rectangle((left, top, right, bottom), fill=(0, 0, 255), outline=(0, 0, 255))
+            else:
+                gr = (p[a][b] / maxP) ** 2
+                gr = int(gr * 255)
+                draw.rectangle((left, top, right, bottom), fill=(0, gr, 0), outline=(0, gr, 0))
+    im.save('users/dirs/' + whoami + '/results/hm-positives.png', quality=500)
+
+    # Generate heatmap PNG for Gaps
+    im = Image.new('RGB', (250 + (25*(peptideIndices[1] - peptideIndices[0] + 2)),2 + 25*(1 + compareWith.__len__())), (80, 80, 80))
+    draw = ImageDraw.Draw(im)
+    font = ImageFont.truetype("font/arial.ttf", 25)
+    font2 = ImageFont.truetype("font/arial.ttf", 15)
+    for a in range(0, compareWith.__len__()):
+        draw.text((0, 25*(a+1)), compareWith[a], fill=(255, 255, 255, 255), font=font)
+    for a in range(0, (peptideIndices[1] - peptideIndices[0] + 1)):
+        if (peptideIndices[0] + a) % 10 == 0:
+            draw.text((250 + (25*a), 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font)
+        elif (peptideIndices[0] + a) % 2 == 0:
+            draw.text((250 + (25*a) + 4, 0), str(peptideIndices[0] + a), fill=(255, 255, 255, 255), font=font2)
+    for a in range(0, i.__len__()):
+        for b in range(0, i[0].__len__()):
+            left = 250 + 25*b
+            right = left + 25
+            top = 25*(a+1)
+            bottom = top + 25
+            if g[a][b] == -1:
+                draw.rectangle((left, top, right, bottom), fill=(255, 0, 0), outline=(255, 0, 0))
+            elif g[a][b] == 0:
+                draw.rectangle((left, top, right, bottom), fill=(0, 0, 255), outline=(0, 0, 255))
+            else:
+                gr = (g[a][b] / maxG) ** 2
+                gr = int(gr * 255)
+                draw.rectangle((left, top, right, bottom), fill=(0, gr, 0), outline=(0, gr, 0))
+    im.save('users/dirs/' + whoami + '/results/hm-positives.png', quality=500)
 
     # Generate heatmap HTML for Score
     w = open('users/dirs/' + whoami + '/results/hm-score.html', 'w')
@@ -292,10 +384,17 @@ try:
                 comment = "Peptide: " +  peptideOI[b] + ", (Hit Detected, but Filtered), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
                 w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', (Hit Detected, but Filtered), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             else:
-                g = (s[a][b] / maxS)
-                g = int(g * 255)
+                gr = (s[a][b] / maxS)
+                gr = int(gr * 255)
                 comment = "Peptide: " + peptideOI[b] + ", Score: " + str(s[a][b]) +  "(bits), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Score: ' + str(s[a][b]) + ' (bits), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(s[a][b]) + '</button></td>')
+                comment2 = '<br><br>Query NCBI Database link:<br>'
+                comment2 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] +'</a><br>'
+                comment += comment2
+                comment3 = '<br><br>Homologies NCBI Database link:<br>'
+                for d in range(0, allPeptides[b][a].__len__()):
+                    comment3 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] +'</a><br>'
+                comment += comment3
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(gr) + ',0)" title="Peptide: ' + peptideOI[b] + ', Score: ' + str(s[a][b]) + ' (bits), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(s[a][b]) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()
@@ -316,17 +415,84 @@ try:
                 comment = "Peptide: " +  peptideOI[b] + ", (Hit Detected, but Filtered), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
                 w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             else:
-                g = (i[a][b] / maxI) ** 2
-                g = int(g * 255)
+                gr = (i[a][b] / maxI) ** 2
+                gr = int(gr * 255)
                 comment = "Peptide: " + peptideOI[b] + ", ID: " + str(i[a][b]) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(i[a][b]) + '</button></td>')
+                comment2 = '<br><br>Query NCBI Database link:<br>'
+                comment2 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] +'</a><br>'
+                comment += comment2
+                comment3 = '<br><br>Homologies NCBI Database link:<br>'
+                for d in range(0, allPeptides[b][a].__len__()):
+                    comment3 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] +'</a><br>'
+                comment += comment3
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(gr) + ',0)" title="Peptide: ' + peptideOI[b] + ', ID: ' + str(i[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(i[a][b]) + '</button></td>')
         w.write('\n\t</tr>')
-    w.write('\n</table>')
-    w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()
 
-    # Generate heatmap HTML fo hit frequency
+    # Generate heatmap HTML for Postives
+    w = open('users/dirs/' + whoami + '/results/hm-positives.html', 'w')
+    w.write('<table>\n\t<tr>\n\t\t<th class="headcol">Positives</th>')
+    for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
+        w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
+    w.write('\n\t</tr>')
+    for a in range(0, compareWith.__len__()):
+        w.write('\n\t<tr>\n\t\t<th class="headcol">' + compareWith[a] + '</th>')
+        for b in range(0, i[0].__len__()):
+            if p[a][b] == -1:
+                comment = "Peptide: " +  peptideOI[b] + ", (No Hit Detected), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
+            elif p[a][b] == 0:
+                comment = "Peptide: " +  peptideOI[b] + ", (Hit Detected, but Filtered), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
+            else:
+                gr = (p[a][b] / maxP) ** 2
+                gr = int(gr * 255)
+                comment = "Peptide: " + peptideOI[b] + ", Positive: " + str(p[a][b]) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                comment2 = '<br><br>Query NCBI Database link:<br>'
+                comment2 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] +'</a><br>'
+                comment += comment2
+                comment3 = '<br><br>Homologies NCBI Database link:<br>'
+                for d in range(0, allPeptides[b][a].__len__()):
+                    comment3 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] +'</a><br>'
+                comment += comment3
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(gr) + ',0)" title="Peptide: ' + peptideOI[b] + ', Positive: ' + str(p[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(p[a][b]) + '</button></td>')
+        w.write('\n\t</tr>')
+    w.write('\n</table>')
+    w.close()
+
+    # Generate heatmap HTML for Gaps
+    w = open('users/dirs/' + whoami + '/results/hm-gaps.html', 'w')
+    w.write('<table>\n\t<tr>\n\t\t<th class="headcol">Gaps</th>')
+    for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
+        w.write('\n\t\t<th>' + str(peptideIndices[0] + a) + '</th>')
+    w.write('\n\t</tr>')
+    for a in range(0, compareWith.__len__()):
+        w.write('\n\t<tr>\n\t\t<th class="headcol">' + compareWith[a] + '</th>')
+        for b in range(0, i[0].__len__()):
+            if i[a][b] == -1:
+                comment = "Peptide: " +  peptideOI[b] + ", (No Hit Detected), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
+            elif i[a][b] == 0:
+                comment = "Peptide: " +  peptideOI[b] + ", (Hit Detected, but Filtered), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                w.write('\n\t\t<td style="background-color:rgb(0,0,255)" title="Peptide: ' + peptideOI[b] + ', Hit Detected, but Filtered, Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
+            else:
+                gr = (g[a][b] / maxG) ** 2
+                gr = int(gr * 255)
+                comment = "Peptide: " + peptideOI[b] + ", Gap: " + str(g[a][b]) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                comment2 = '<br><br>Query NCBI Database link:<br>'
+                comment2 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] +'</a><br>'
+                comment += comment2
+                comment3 = '<br><br>Homologies NCBI Database link:<br>'
+                for d in range(0, allPeptides[b][a].__len__()):
+                    comment3 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] +'</a><br>'
+                comment += comment3
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(gr) + ',0)" title="Peptide: ' + peptideOI[b] + ', Gap: ' + str(g[a][b]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(g[a][b]) + '</button></td>')
+        w.write('\n\t</tr>')
+    w.write('\n</table>')
+    w.close()
+
+    # Generate heatmap HTML for Frequency
     w = open('users/dirs/' + whoami + '/results/hm-frequency.html', 'w')
     w.write('<table>\n\t<tr>\n\t\t<th class="headcol">Frequency</th>')
     for a in range(0, peptideIndices[1] - peptideIndices[0] + 1):
@@ -334,15 +500,22 @@ try:
     w.write('\n\t</tr>')
     for a in range(0, compareWith.__len__()):
         w.write('\n\t<tr>\n\t\t<th class="headcol">' + compareWith[a] + '</th>')
-        for b in range(0, allPeptides.__len__()):
-            if allPeptides[b][a] == 0:
+        for b in range(0, i[0].__len__()):
+            if allPeptides[b][a] == ['***** No hits found *****']:
                 comment = "Peptide: " +  peptideOI[b] + ", (No Hit Detected), Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
                 w.write('\n\t\t<td style="background-color:rgb(255,0,0)" title="Peptide: ' + peptideOI[b] + ', (No Hit Detected), Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button class="rb" name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">_</button></td>')
             else:
-                g = (allPeptides[b][a] / maxF) ** 2
-                g = int(g * 255)
-                comment = "Peptide: " + peptideOI[b] + ", Frequency: " + str(allPeptides[b][a]) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
-                w.write('\n\t\t<td style="background-color:rgb(0,' + str(g) + ',0)" title="Peptide: ' + peptideOI[b] + ', Frequency: ' + str(allPeptides[b][a]) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(allPeptides[b][a]) + '</button></td>')
+                gr = (allPeptides[b][a].__len__() / maxF) ** 2
+                gr = int(gr * 255)
+                comment = "Peptide: " + peptideOI[b] + ", Frequency: " + str(allPeptides[b][a].__len__()) +  ", Peptide Index: " + str(peptideIndices[0] + b) + ", Compared With " + compareWith[a]
+                comment2 = '<br><br>Query NCBI Database link:<br>'
+                comment2 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + peptideOI[b].split(' ')[1] +'</a><br>'
+                comment += comment2
+                comment3 = '<br><br>Homologies NCBI Database link:<br>'
+                for d in range(0, allPeptides[b][a].__len__()):
+                    comment3 += "<a target='_blank' href='https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] + "'>https://www.ncbi.nlm.nih.gov/protein/" + allPeptides[b][a][d].split(' ')[1] +'</a><br>'
+                comment += comment3
+                w.write('\n\t\t<td style="background-color:rgb(0,' + str(gr) + ',0)" title="Peptide: ' + peptideOI[b] + ', Frequency: ' + str(allPeptides[b][a].__len__()) + ', Peptide Index: ' + str(peptideIndices[0] + b) + ', Compared With ' + compareWith[a] + '"><button name="IBC" value="' + str(peptideIndices[0] + b) + '||' + compareWith[a] + '||' + comment + '">' + str(allPeptides[b][a].__len__()) + '</button></td>')
         w.write('\n\t</tr>')
     w.write('\n</table>')
     w.close()
@@ -360,6 +533,16 @@ w = open('users/dirs/' + whoami + '/results/request.txt', 'w')
 for a in range(0, request.__len__()):
     w.write(request[a])
 w.close()
+
+# Create .xlxs out of .csv files
+files = ['score.csv', 'id.csv', 'positive.csv', 'gap.csv', 'frequency.csv', 'peptide.csv', 'link.csv']
+writer = pd.ExcelWriter('users/dirs/' + whoami + '/results/data.xlsx')
+for csvfilename in files:
+    df = pd.read_csv('users/dirs/' + whoami + '/results/' + csvfilename)
+    df.to_excel(writer, sheet_name=os.path.splitext(csvfilename)[0])
+writer.save()
+for csvfilename in files:
+    os.remove('users/dirs/' + whoami + '/results/' + csvfilename)
 
 # Zip the results directory
 shutil.make_archive('users/dirs/' + whoami + '/zip/' + saveas, 'zip', 'users/dirs/' +  whoami + '/results')

@@ -59,12 +59,6 @@
         $_SESSION['step1'] = 0;
         $_SESSION['step2'] = 0;
     }
-    if (isset($_POST['page5']))
-    {
-        $_SESSION['page'] = 5;
-        $_SESSION['step1'] = 0;
-        $_SESSION['step2'] = 0;
-    }
 
     # Upload function
     if (isset($_POST['upload']))
@@ -240,7 +234,8 @@
         fwrite($write2, $_SESSION['whoami']);
         fclose($write2);
         $_SESSION['zipOI'] = $_POST['zipfile'];
-        $_SESSION['zipFile'] = '<a href="' . $_POST['zipfile'] . '" Download>Click here</a>' . ' to download data and plots of <b>' . explode('/', $_SESSION['zipOI'])[sizeof(explode('/', $_SESSION['zipOI'])) - 1] . '</b>';
+        $_SESSION['zipFile'] = '<a href="' . $_POST['zipfile'] . '" download>Click here</a> to download the data and plots (Heatmaps) of <b>' . explode('/', $_SESSION['zipOI'])[sizeof(explode('/', $_SESSION['zipOI'])) - 1] . ' in a zip file.</b><br>' . 
+        '<a href="users/dirs/' . $_SESSION['whoami'] . '/view/data.xlsx" download>Click here</a> to download the data in Excel Workbook format';
         $_SESSION['step2'] = 1;
         echo shell_exec('env/bin/python src/Extract.py ' . $_SESSION['zipOI'] . ' ' . 'users/dirs/' . $_SESSION['whoami'] . '/view 2>&1');
         $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-score.html', 'r');
@@ -296,6 +291,26 @@
         }
         $_SESSION['iframe']  = $table;
     }
+    if (isset($_POST['hm-positive']))
+    {
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-positives.html', 'r');
+        $table = '';
+        while (!feof($read))
+        {
+            $table .= fgets($read);
+        }
+        $_SESSION['iframe']  = $table;
+    }
+    if (isset($_POST['hm-gap']))
+    {
+        $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-gaps.html', 'r');
+        $table = '';
+        while (!feof($read))
+        {
+            $table .= fgets($read);
+        }
+        $_SESSION['iframe']  = $table;
+    }
     if (isset($_POST['hm-frequency']))
     {
         $read = fopen('users/dirs/' . $_SESSION['whoami'] . '/view/hm-frequency.html', 'r');
@@ -306,7 +321,6 @@
         }
         $_SESSION['iframe']  = $table;
     }
-    
 
     # Indvidual Blast Results via Menu
     if (isset($_POST['indvBlast']))
@@ -540,6 +554,10 @@
             white-space: nowrap;
             border-top-width: 0px;
         }
+        a
+        {
+            text-decoration: none;
+        }
         div table
         {
             overflow-y: visible;
@@ -592,7 +610,7 @@
                         '<input type="submit" name="page2" class="page" value="Analyze">' . 
                         '<input type="submit" name="page3" class="page" value="View Results">' . 
                         '<input type="submit" name="page4" class="page" value="Leave Feedback">' . 
-                        '<input type="submit" name="page5" class="page" value="Guide">';
+                        '<a class="page" href="guide.html">Guide</a>';
                     }
                 ?>
             </form>
@@ -744,9 +762,10 @@
                         {
                             echo 'Please enter the <b>' . $_SESSION['filterBy'] . '</b> values MassBlast must filter between:<br><br>' . 
                             'Lower Bound:<input type="number" name="lowFilter" min="0" step=".01"><br><br>' . 
-                            'Upper Bound:<input type="number" name="highFilter" min="0" step=".01"><br><br>';
+                            'Upper Bound:<input type="number" name="highFilter" min="0" step=".01"><br><br>' . 
+                            '<a href="guide.html#filter" target="_blank" >What values should I enter to filter my data correctly?<img height="12px" length="12px" src="img/tooltip.png"></a>';
                         }
-                        echo 'Save the data as:<br><br>' . 
+                        echo '<br><br>Save the data as:<br><br>' . 
                         '<input type="text" name="saveas" required>.zip<br><br>' . 
                         '<input type="submit" name="nextStep4" value="Submit">';
                     }
@@ -808,7 +827,9 @@
                         echo '<h3>Select Data:</h3><hr>' . 
                         'Select the unit for the heatmap to display: ' . 
                         '<input type="submit" name="hm-score" value="Score">' . 
-                        '<input type="submit"" name="hm-id" value="ID">' . 
+                        '<input type="submit" name="hm-id" value="ID">' . 
+                        '<input type="submit" name="hm-positive" value="Positive">' . 
+                        '<input type="submit" name="hm-gap" value="Gap">' . 
                         '<input type="submit"" name="hm-frequency" value="Frequency"><br><br>' . 
                         '<table class="TableOfContents"><tr><td class="colored" style="background-color:rgb(0,255,0)">__</td><td>Valid hit(s) detected</td><td class="colored" style="background-color:rgb(255,0,0)">__</td><td>No hits</td><td class="colored" style="background-color:rgb(0,0,255)">__</td><td>Hit(s) detected outside of given filter</td><tr></table><br>';
                         echo '<div class="iframe" style="border:1 solid black;">' . $_SESSION['iframe'] . '</div><br>' . 
@@ -855,77 +876,6 @@
                         'Please leave any comments regarding any improvements to MassBlast or errors encountered while using MassBlast:<br><br>' .
                         '<textarea name="feedback" rows="5" cols="50" Required></textarea><br><br>' .
                         '<input type="submit" name="leaveFB" value="Submit">';
-                    }
-                ?>
-            </form>
-        </div>
-        <div id="body">
-            <form action="" method="post" enctype="multipart/form-data">
-                <?php
-                    # Guide
-                    if ($_SESSION['logged'] && $_SESSION['page'] == 5)
-                    {
-                        echo 'Prior to doing any calculations, users must upload Proteome FASTA files in the upload tab.<br>' . 
-                        'If you do not have any, feel free to use the following FASTA files in this <a href="pfasta.zip" download>zip file.</a><br>' . 
-                        'The guide/tutorial below will use the following 4 FASTA files from the given zip file above...<br>' . 
-                        '<ul>
-                            <li>acinonychis.faa</li>
-                            <li>ailurogastricus.faa</li>
-                            <li>ansersis.faa</li>
-                            <li>pylori.faa</li>
-                        </ul>' . 
-                        'Ensure that these files have been uploaded to follow along with the guide/tutorial.<br>' . 
-                        'Steps 1 - 4 take place in the <b>Analyze</b> tab.<br>';
-                        echo '<h3>Step 1: Selecting the files of interest</h3><hr>' . 
-                        'This is the first step in doing a calculation with the FASTA files on MassBlast.<br>' . 
-                        'In the select box, the user must select the FASTA file that is to be the focus, or the file that all FASTA files will be compared with for homogenous structures.<br>' . 
-                        'In the gray box with many checkboxes, here the user must select all FASTA files that he or she may want to compare with the FASTA file selected in the select box above.<br>' . 
-                        'For the tutorial, the user is interested in using <b>pylori.faa</b> as the focus file, and comparing it with <b>acinonychis.faa, ailurogastricus.faa, and ansersis.faa</b> as shown below.<br><br>' . 
-                        '<img src="img/guideSS1.png" height="35%" length="35%">';
-                        echo '<h3>Step 2: Arranging the selected files</h3><hr>' . 
-                        'This is the second step in doing a calculation with the FASTA files on MassBlast.<br>' . 
-                        'The user must enter the number between 1 through n (n is the number of files to compare with) in the textbox associating with what order each file should be used to compare with the focus file.<br>' . 
-                        'The numbers can be entered in any order and will arrange the file from least to greatest.<br>' . 
-                        'For the tutorial, the user wants to analyze the files he select in this specific order: <b>ansersis.faa, ailurgastricus.faa, and acinonychis.faa</b> as shown below.<br><br>' . 
-                        '<img src="img/guideSS2.png" height="25%" length="25%">';
-                        echo '<h3>Step 3: Select the range of peptide sequences to analyze</h3><hr>' . 
-                        'The user must enter the 2 numbers that indicate what peptide sequences to include in the MassBlast query.<br>' . 
-                        'For the tutorial, the user wants to analyze peptide sequences <b> 1 through 200 inclusively.</b><br><br>' . 
-                        '<img src="img/guideSS3.png" height="30%" length="30%">';
-                        echo '<h3>Step 4: Applying filters and submitting the query</h3><hr>' . 
-                        'The user now has the option to apply for a filter. If they select <b>None</b>, this step can be skipped, otherwise continue forward.<br>' . 
-                        'If the user selects any other of the 4 options: <b>Score, ID, Gap, or Positives, </b> then they must provide the parameters of the filter as shown below.<br>' .
-                        'Additionally, the user will be prompted to enter a name to save the results under.<br>' . 
-                        'For the tutorial, the user wants to filter by ID, and decides the filter to only include results that have an ID between <b>.15 and 1,</b> and have the MassBlast query save as <b>guided101.</b><br><br>' . 
-                        '<img src="img/guideSS4.png" height="30%" length="30%"><img src="img/guideSS5.png" height="35%" length="35%">';
-                        echo '<h3>Step 5: Accessing the data</h3><hr>' . 
-                        'This is the last step and it takes place in <b>View Results</b> tab.<br>' . 
-                        'The user is initially prompted in selecting the zip with the name enterred in the previous step.<br>' . 
-                        'If you are following along with the tutorial, select <b>guided101.zip.</b><br>' . 
-                        'From there, you are provided this menu:<br><br>' . 
-                        '<img src="img/guideSS6.png" height="55%" length="55%"><br><br>' . 
-                        'Selecting any of the 3 buttons: <b>Score, ID, or Frequency</b> allows for the user to switch the heatmap between the Score, ID, or Frequency heatmap.<br>' . 
-                        '(The <b>Frequency</b> graph relates to the number of homologies that particular peptide had when compared to other FASTA files, regardless of the filter given)<br>' . 
-                        'Additionally, the user can hover over cells to get a tooltip that holds more information regarding the particular peptide.<br>' . 
-                        'If a cell is clicked on, at the bottom of the page appears the BLAST report for that particular cell along with the text of the tooltip that can be copied to the clipboard.<br>' . 
-                        'The bottom most menu serves the same as clicking on a cell. Enter the index of the peptide and the specie being compared to access the Blast report for a particular cell.<br>';
-                        echo '<h3>Step 6: Downloading your data</h3><hr>' . 
-                        'The menu to analyze your data also contains a download link for the saved data as a zip.<br>' .
-                        'The files in that zip include:<br>' . 
-                        '<ul> 
-                            <li>allMB.txt: a file that contains all the BLAST reports, but in one text file</li>
-                            <li>allPeptides.txt: a text file with a list of each region of homology detected by BLAST for each of the focus file\'s peptide sequences</li>
-                            <li>score.csv: a CSV file containing the Score of every cell from the heatmap</li>
-                            <li>id.csv: a CSV file containing the ID of every cell from the heatmap</li>
-                            <li>gap.csv: a CSV containing the Gap of every cell from the heatmap</li>
-                            <li>positives.csv: a CSV file containing the Positive of every cell from the heatmap</li>
-                            <li>hm-score.png: a PNG that is a smaller representation of the Score heatmap</li>
-                            <li>hm-score.html: a html file that is a copy of the Score heatmap displayed </li>
-                            <li>hm-id.png: a PNG that is a smaller representation of the ID heatmap</li>
-                            <li>hm-id.html: a html file that is a copy of the ID heatmap</li>
-                            <li>hm-frequency.html: a html file that is a copy of the Frequency heatmap displayed</li>
-                            <li>request.txt: a file that holds the parameters the user submitted for this MassBlast query</li>
-                        </ul>';
                     }
                 ?>
             </form>

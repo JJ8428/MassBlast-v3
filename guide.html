@@ -1,0 +1,148 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <title>MB-v3</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <style>
+        body
+        {
+            background-color: black;
+        	font:14px/1.4 'Arial', 'Helvetica', sans-serif;
+        }
+        #body
+        {
+            background-color: white;
+            padding: 0;
+        }
+        #body1
+        {
+            background-color: #C70039;
+            color: white;
+        }
+        #body1 b
+        {
+            color: white;
+        }
+        .page
+        {
+            color: white;
+            font-weight: bold;
+            border-style: solid;
+            background-color: #C70029;
+            height: 30px;
+            border-color: #C70039;
+        }
+        .page:hover
+        {
+            background-color: #73000a;
+        }
+        h3, b, hr
+        {
+            color: #73000a;
+        }
+    </style>
+    <body>
+        <div id="body">
+            <h1 style="display:inline; font-weight:normal">
+                <b>MassBlast</b>
+            </h1>
+            <img id="img2" src="img/nsf-logo.png" height="59px" width="59px" style="display: inline; float: right;">
+            <img src="img/usc.jpeg" height="59px" width="59px" style="display: inline; float: right;">
+            </br>
+            Work of Dr. Homayoun Valafar, Dr. Traci L. Testerman, JJ Satti
+        </div>
+        <div id="body">
+            <h3>What is MassBlast?</h3><hr>
+            While BLAST+ provides many services to identify the hundreds homologies among different peptide sequences, it isn't designed to find specific homologies, or data points, that pertain to a specific goal or interest. 
+            BLAST+ reports are often long and can be very detailed; perusing through the mulitude of units to quantify the 1000's of homologies is not particulary effecient. The purpose of <b>MassBlast</b> is to provide the same BLAST+ services, but with an emphasis on data being more concise and providing the necessary tools to visualize the data. 
+            <br><br>
+            Data visualization takes the form of several heatmaps to highlight certain units used to measure/quantify each homology. Those units being...
+            <ul>
+                <li>Score: In the context of sequence alignments, a score is a numerical value that describes the overall quality of an alignment. Higher numbers correspond to higher similarity. This is biased on the length of the Peptide. Longer Peptides have a higher score.</li>
+                <li>ID: The extent to which two (nucleotide or amino acid) sequences have the same residues at the same positions in an alignment, often expressed as a percentage. MassBlast expresses this value with decimals between 0 through 1 (inclusive).</li>
+                <li>Positive: The number and fraction of residues for which the alignment scores have positive values. MassBlast expresses this value with decimals between 0 through 1 (inclusive).</li>
+                <li>Gap: The number that represents the penalty due to mismatches in compared peptide sequences in each homology. For this unit, a stronger homology is one that contains a lower Gap value. MassBlast expresses this value with decimals between 0 through 1 (inclusive).</li>
+            </ul>
+            MassBlast also provides another unit called "Frequency", which represents the number of homologies found for that particular BLAST+ query.
+        </div>
+        <div id="body" name="tutorial">
+            <h3>MassBlast Tutorial:</h3><hr>
+            After creating an accoun but prior to doing any calculations, users must upload Proteome FASTA files in the upload tab.<br>
+            If you do not have any, feel free to use the following FASTA files in this <a href="pfasta.zip" download>zip file.</a><br>
+            The guide/tutorial below will use the following 4 FASTA files from the given zip file above...<br>
+            <ul>
+                <li>acinonychis.faa</li>
+                <li>ailurogastricus.faa</li>
+                <li>ansersis.faa</li>
+                <li>pylori.faa</li>
+            </ul>
+            Ensure that these files have been uploaded to follow along with the guide/tutorial.<br>
+            Steps 1 - 4 take place in the <b>Analyze</b> tab.<br>
+            Follow the directions below to understand how to submit a MassBlast query.
+            <h3>Step 1: Selecting the files of interest</h3><hr> 
+            This is the first step in doing a calculation with the FASTA files on MassBlast.<br>
+            In the select box, the user must select the FASTA file that is to be the focus, or the file that all FASTA files will be compared with for homogenous structures.<br>' . 
+            In the gray box with many checkboxes, here the user must select all FASTA files that he or she may want to compare with the FASTA file selected in the select box above.<br>' . 
+            For the tutorial, the user is interested in using <b>pylori.faa</b> as the focus file, and comparing it with <b>acinonychis.faa, ailurogastricus.faa, and ansersis.faa</b> as shown below.<br><br>' . 
+            <img src="img/guideSS1.png" height="35%" length="35%">';
+            <h3>Step 2: Arranging the selected files</h3><hr>' . 
+            This is the second step in doing a calculation with the FASTA files on MassBlast.<br>' . 
+            The user must enter the number between 1 through n (n is the number of files to compare with) in the textbox associating with what order each file should be used to compare with the focus file.<br>' . 
+            The numbers can be entered in any order and will arrange the file from least to greatest.<br>' . 
+            For the tutorial, the user wants to analyze the files he select in this specific order: <b>ansersis.faa, ailurgastricus.faa, and acinonychis.faa</b> as shown below.<br><br>
+            <img src="img/guideSS2.png" height="25%" length="25%">
+            <h3>Step 3: Select the range of peptide sequences to analyze</h3><hr>
+            The user must enter the 2 numbers that indicate what peptide sequences to include in the MassBlast query.<br> 
+            For the tutorial, the user wants to analyze peptide sequences <b> 1 through 200 inclusively.</b><br><br>
+            <img src="img/guideSS3.png" height="30%" length="30%">
+            <h3>Step 4: Applying filters and submitting the query</h3><hr>
+            The user now has the option to apply for a filter. If they select <b>None</b>, this step can be skipped, otherwise continue forward.<br>
+            If the user selects any other of the 4 options: <b>Score, ID, Gap, or Positives, </b> then they must provide the parameters of the filter as shown below.<br>
+            Additionally, the user will be prompted to enter a name to save the results under.<br>
+            For the tutorial, the user wants to filter by ID, and decides the filter to only include results that have an ID between <b>.15 and 1,</b> and have the MassBlast query save as <b>guided101.</b><br><br>
+            <img src="img/guideSS4.png" height="30%" length="30%"><img src="img/guideSS5.png" height="35%" length="35%">
+            <h3>Step 5: Accessing the data</h3><hr>
+            This is the last step and it takes place in <b>View Results</b> tab.<br>
+            The user is initially prompted in selecting the zip with the name enterred in the previous step.<br>
+            If you are following along with the tutorial, select <b>guided101.zip.</b><br>
+            From there, you are provided this menu:<br><br>
+            <img src="img/guideSS6.png" height="55%" length="55%"><br><br>
+            Selecting any of the 3 buttons: <b>Score, ID, or Frequency</b> allows for the user to switch the heatmap between the Score, ID, or Frequency heatmap.<br>
+            (The <b>Frequency</b> graph relates to the number of homologies that particular peptide had when compared to other FASTA files, regardless of the filter given)<br>
+            Additionally, the user can hover over cells to get a tooltip that holds more information regarding the particular peptide.<br>
+            If a cell is clicked on, at the bottom of the page appears the BLAST report for that particular cell along with the text of the tooltip that can be copied to the clipboard.<br> 
+            The bottom most menu serves the same as clicking on a cell. Enter the index of the peptide and the specie being compared to access the Blast report for a particular cell.<br>
+            <h3>Step 6: Downloading your data</h3><hr>
+            The menu to analyze your data also contains a download link for the saved data as a zip.<br>
+            The files in that zip include:<br>
+            <ul> 
+                <li>allMB.txt: a file that contains all the BLAST reports, but in one text file</li>
+                <li>allPeptides.txt: a text file with a list of each region of homology detected by BLAST for each of the focus file\'s peptide sequences</li>
+                <li>score.csv: a CSV file containing the Score of every cell from the heatmap</li>
+                <li>id.csv: a CSV file containing the ID of every cell from the heatmap</li>
+                <li>gap.csv: a CSV containing the Gap of every cell from the heatmap</li>
+                <li>positives.csv: a CSV file containing the Positive of every cell from the heatmap</li>
+                <li>hm-score.png: a PNG that is a smaller representation of the Score heatmap</li>
+                <li>hm-score.html: a html file that is a copy of the Score heatmap displayed </li>
+                <li>hm-id.png: a PNG that is a smaller representation of the ID heatmap</li>
+                <li>hm-id.html: a html file that is a copy of the ID heatmap</li>
+                <li>hm-frequency.html: a html file that is a copy of the Frequency heatmap displayed</li>
+                <li>request.txt: a file that holds the parameters the user submitted for this MassBlast query</li>
+            </ul>
+        </div>
+        <div id="body" name="filter">
+            <h3>FAQ:</h3><hr>
+            How should I set my filter values?
+            <br><br>
+            Score can vary from 0 to the few 1000's. there is no defined max value for Score. (Can be a decimal)
+            <br><br>
+            ID, Gap, and Positive stay in the range of 0 - 1 (inclusive). (Can be a decimal)
+            <br><br>
+            All relevant hits usually have a Score above 40, so its best to set a filter, if Score is selected, to filter from 40 - 2000. 
+            <br>
+            If the user wishes to set a even higher lower threshold to remove relevant low Score hits, the lower threshold can be higher than 40, though it would not be recommended to go beyond 200.
+        </div>
+    </body>
+</html>
